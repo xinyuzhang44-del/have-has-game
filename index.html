@@ -332,16 +332,16 @@
   <header>
     <h1>Has or <span class="accent">Have</span>? 🔄</h1>
     <p class="tagline">Swap the subject for <b>he</b>, <b>she</b>, or <b>it</b>.</p>
-    <button class="rule-btn hide" id="ruleBtn" onclick="showIntro()">📖 Rule</button>
+    <button class="rule-btn" id="ruleBtn" onclick="showIntro()">📖 Rule</button>
   </header>
 
-  <div class="bar-row hide" id="barRow">
+  <div class="bar-row" id="barRow">
     <div class="bar"><div class="bar-fill" id="barFill"></div></div>
     <span class="counter" id="counter">1 / 15</span>
   </div>
 
-  <!-- ===== INTRO / RULE CARD ===== -->
-  <div class="card intro" id="introCard">
+  <!-- ===== RULE CARD (opened from the 📖 Rule button, never shown first) ===== -->
+  <div class="card intro hide" id="introCard">
     <h2>One test. No memorizing. 🔄</h2>
     <p class="lead">
       Before you choose, try to <strong>swap the subject</strong> for
@@ -392,11 +392,11 @@
       Everyone and everything else takes <strong>have</strong>.
     </div>
 
-    <button class="next show" id="introBtn" onclick="closeIntro()">Start →</button>
+    <button class="next show" id="introBtn" onclick="closeIntro()">Back to the game →</button>
   </div>
 
   <!-- ===== QUESTION CARD ===== -->
-  <div class="card hide" id="quizCard">
+  <div class="card" id="quizCard">
     <span class="tag other" id="tag">Someone else</span>
     <p class="sentence" id="sentence"></p>
 
@@ -483,33 +483,35 @@ let index    = 0;
 let firstTry = true;
 let score    = 0;
 let missed   = [];
-let started  = false;   // has the student left the intro screen yet?
 
 const $ = id => document.getElementById(id);
 
-/* ---------- intro / rule screen ---------- */
+/* ---------- rule screen ----------
+   Never shown on load — students go straight into question 1. It only
+   opens on demand from the 📖 Rule button, and returns them to exactly
+   where they were. */
 function showIntro() {
+  const finished = index >= QUESTIONS.length;
   $("introCard").classList.remove("hide");
   $("quizCard").classList.add("hide");
   $("resultsCard").classList.add("hide");
   $("barRow").classList.add("hide");
   $("ruleBtn").classList.add("hide");
-  $("introBtn").textContent = started ? "Back to the game →" : "Start →";
+  $("introBtn").textContent = finished ? "Back to my score →" : "Back to the game →";
 }
 
 function closeIntro() {
   $("introCard").classList.add("hide");
   $("ruleBtn").classList.remove("hide");
 
-  // Reopening the rule mid-game must not throw away a finished game.
-  if (started && index >= QUESTIONS.length) {
+  // Reopening the rule after finishing must not throw away the score.
+  if (index >= QUESTIONS.length) {
     $("resultsCard").classList.remove("hide");
     return;
   }
 
   $("quizCard").classList.remove("hide");
   $("barRow").classList.remove("hide");
-  if (!started) { started = true; render(); }
 }
 
 /* ---------- question flow ---------- */
@@ -614,7 +616,7 @@ function restart() {
   render();
 }
 
-showIntro();
+render();
 </script>
 </body>
 </html>
