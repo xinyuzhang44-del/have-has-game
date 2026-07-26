@@ -460,54 +460,54 @@
 </div>
 
 <script>
-/* Every rule below is phrased as the same swap test, so the logic never
-   contradicts itself — including for I / you / we, which are singular but
-   still take "have" because they are not the person being talked about. */
+/* Tips are deliberately one short line. Mid-game is not the moment for
+   reasoning — students need the pattern fast. The "why" (speaker /
+   listener / talked about) lives on the 📖 Rule screen for the teacher. */
 const QUESTIONS = [
   { subject: "I", rest: "a new bike.", answer: "have", type: "The speaker", role: "speaker",
-    rule: "<strong>I</strong> can’t become <em>he</em>, <em>she</em> or <em>it</em> — I am the person <strong>speaking</strong>. Only one person, but still <strong>have</strong>." },
+    rule: "<strong>I</strong> always takes <strong>have</strong>." },
 
   { subject: "My little sister", rest: "two goldfish.", answer: "has", type: "Someone else", role: "other",
-    rule: "<strong>My little sister</strong> → <strong>she</strong> ✅ → <strong>has</strong>." },
+    rule: "<strong>My little sister</strong> → <strong>she</strong> → <strong>has</strong>." },
 
   { subject: "The library", rest: "over 3,000 books.", answer: "has", type: "Something else", role: "other",
-    rule: "<strong>The library</strong> → <strong>it</strong> ✅ → <strong>has</strong>. A place can be a subject too." },
+    rule: "<strong>The library</strong> → <strong>it</strong> → <strong>has</strong>. A place can be a subject too." },
 
   { subject: "My parents", rest: "a small garden.", answer: "have", type: "Someone else", role: "other",
-    rule: "<strong>My parents</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
+    rule: "<strong>My parents</strong> → <strong>they</strong> → <strong>have</strong>." },
 
   { subject: "You", rest: "a great idea.", answer: "have", type: "The listener", role: "listener",
-    rule: "<strong>You</strong> can’t become <em>he</em>, <em>she</em> or <em>it</em> — you are the person <strong>listening</strong>. One person or many, always <strong>have</strong>." },
+    rule: "<strong>You</strong> always takes <strong>have</strong>." },
 
   { subject: "That old building", rest: "ten floors.", answer: "has", type: "Something else", role: "other",
-    rule: "<strong>That old building</strong> → <strong>it</strong> ✅ → <strong>has</strong>." },
+    rule: "<strong>That old building</strong> → <strong>it</strong> → <strong>has</strong>." },
 
   { subject: "Tom and Lily", rest: "the same birthday.", answer: "have", type: "Someone else", role: "other",
-    rule: "<strong>Tom and Lily</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
+    rule: "<strong>Tom and Lily</strong> → <strong>they</strong> → <strong>have</strong>." },
 
   { subject: "Her phone", rest: "a cracked screen.", answer: "has", type: "Something else", role: "other",
-    rule: "<strong>Her phone</strong> → <strong>it</strong> ✅ → <strong>has</strong>. The word <em>her</em> does not change the verb." },
+    rule: "<strong>Her phone</strong> → <strong>it</strong> → <strong>has</strong>." },
 
   { subject: "We", rest: "English class on Monday.", answer: "have", type: "The speaker", role: "speaker",
-    rule: "<strong>We</strong> = me + other people. Still the people <strong>speaking</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
+    rule: "<strong>We</strong> always takes <strong>have</strong>." },
 
   { subject: "The students", rest: "their own lockers.", answer: "have", type: "Someone else", role: "other",
-    rule: "<strong>The students</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
+    rule: "<strong>The students</strong> → <strong>they</strong> → <strong>have</strong>." },
 
   { subject: "This restaurant", rest: "amazing noodles.", answer: "has", type: "Something else", role: "other",
-    rule: "<strong>This restaurant</strong> → <strong>it</strong> ✅ → <strong>has</strong>." },
+    rule: "<strong>This restaurant</strong> → <strong>it</strong> → <strong>has</strong>." },
 
   { subject: "My brother and I", rest: "very different hobbies.", answer: "have", type: "The speaker", role: "speaker",
-    rule: "<strong>My brother and I</strong> → <strong>we</strong>. I am still inside the subject, so it can’t be <em>he/she/it</em> → <strong>have</strong>." },
+    rule: "<strong>My brother and I</strong> → <strong>we</strong> → <strong>have</strong>." },
 
   { subject: "Everyone in my class", rest: "a school ID card.", answer: "has", type: "Tricky one", role: "tricky",
-    rule: "Careful — the subject is <strong>Everyone</strong>, not <em>my class</em>. <strong>Everyone</strong> means every single person, one at a time → <strong>he/she</strong> ✅ → <strong>has</strong>." },
+    rule: "<strong>Everyone</strong> → <strong>he/she</strong> → <strong>has</strong>. The subject is <em>Everyone</em>, not <em>my class</em>." },
 
   { subject: "Some cities", rest: "no subway system.", answer: "have", type: "Something else", role: "other",
-    rule: "<strong>Some cities</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
+    rule: "<strong>Some cities</strong> → <strong>they</strong> → <strong>have</strong>." },
 
   { subject: "It", rest: "four legs and a long tail.", answer: "has", type: "Something else", role: "other",
-    rule: "<strong>It</strong> is already one of the three! <em>He</em>, <em>she</em>, <em>it</em> → <strong>has</strong>." }
+    rule: "<strong>It</strong> → <strong>has</strong>. <em>He</em>, <em>she</em>, <em>it</em> all take <strong>has</strong>." }
 ];
 
 let index    = 0;
