@@ -258,19 +258,44 @@
     line-height: 1.45;
     flex-wrap: wrap;
   }
+  /* Neither group is "wrong" — has and have are both correct answers, just
+     for different subjects. So no red, and no ✗ anywhere near a verb. */
   .swap-row.yes { background: #e9f8f2; }
-  .swap-row.no  { background: #fff5e6; }
+  .swap-row.no  { background: #eef1fb; }
 
   .swap-row .from { font-weight: 700; }
   .swap-row .arrow { color: #9aa0c0; }
   .swap-row .to { font-weight: 700; }
   .swap-row.yes .to { color: #147a50; }
-  .swap-row.no  .to { color: #8a5320; }
-  .swap-row .verdict { margin-left: auto; font-weight: 800; white-space: nowrap; }
-  .swap-row .verdict .mark { margin-right: 5px; }
-  .swap-row.yes .verdict { color: #147a50; }
-  .swap-row.no  .verdict { color: #8a5320; }
+  .swap-row.no  .to { color: #3f5194; }
+
+  .swap-row .fit { font-size: 13px; color: #5d6183; }
+
+  /* The verdict is the answer to write, so it looks identical in every
+     row — it must never read as a right/wrong mark on the verb itself. */
+  .swap-row .verdict {
+    margin-left: auto;
+    font-weight: 800;
+    white-space: nowrap;
+    background: #1f2340;
+    color: #fff;
+    padding: 5px 13px;
+    border-radius: 99px;
+    font-size: 14px;
+  }
+
   .swap-row .note { width: 100%; font-size: 13px; color: #6d7192; }
+
+  .legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #9aa0c0;
+    padding: 0 13px 6px;
+  }
 
   .keypoint {
     background: #f2eeff;
@@ -348,38 +373,44 @@
       <strong>he</strong>, <strong>she</strong>, or <strong>it</strong>.
     </p>
 
+    <p class="legend">
+      <span class="legend-a">Can you swap it?</span>
+      <span class="legend-b">Then write…</span>
+    </p>
+
     <div class="swap-list">
       <div class="swap-row yes">
         <span class="from">My little sister</span>
         <span class="arrow">→</span>
         <span class="to">she</span>
-        <span class="verdict"><span class="mark">✅</span>has</span>
+        <span class="fit">✅ fits</span>
+        <span class="verdict">has</span>
       </div>
       <div class="swap-row yes">
         <span class="from">The library</span>
         <span class="arrow">→</span>
         <span class="to">it</span>
-        <span class="verdict"><span class="mark">✅</span>has</span>
+        <span class="fit">✅ fits</span>
+        <span class="verdict">has</span>
         <span class="note">A place or a thing can be a subject too — it is an “it”.</span>
       </div>
       <div class="swap-row no">
         <span class="from">My parents</span>
         <span class="arrow">→</span>
         <span class="to">they</span>
-        <span class="verdict"><span class="mark">❌</span>have</span>
+        <span class="fit">✅ correct, but not <em>he/she/it</em></span>
+        <span class="verdict">have</span>
       </div>
       <div class="swap-row no">
         <span class="from">I</span>
-        <span class="arrow">→</span>
-        <span class="to">can’t be he / she / it</span>
-        <span class="verdict"><span class="mark">❌</span>have</span>
+        <span class="fit">✅ correct, but not <em>he/she/it</em></span>
+        <span class="verdict">have</span>
         <span class="note">I am the person <em>speaking</em> — not the person being talked about.</span>
       </div>
       <div class="swap-row no">
         <span class="from">You</span>
-        <span class="arrow">→</span>
-        <span class="to">can’t be he / she / it</span>
-        <span class="verdict"><span class="mark">❌</span>have</span>
+        <span class="fit">✅ correct, but not <em>he/she/it</em></span>
+        <span class="verdict">have</span>
         <span class="note">You are the person <em>listening</em> — not the person being talked about.</span>
       </div>
     </div>
