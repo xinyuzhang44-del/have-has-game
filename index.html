@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Has or Have? — Subject Detective</title>
+<title>Has or Have? — The Swap Test</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -20,7 +20,11 @@
   .app { width: 100%; max-width: 680px; }
 
   /* ---------- header ---------- */
-  header { text-align: center; margin-bottom: 18px; }
+  header {
+    text-align: center;
+    margin-bottom: 18px;
+    position: relative;
+  }
 
   h1 {
     font-size: clamp(22px, 5vw, 30px);
@@ -33,6 +37,22 @@
     font-size: 14px;
     color: #5d6183;
   }
+
+  .rule-btn {
+    position: absolute;
+    top: 0; right: 0;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border: 1.5px solid #d5d9f0;
+    background: #fff;
+    color: #5d6183;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: border-color .18s, color .18s;
+  }
+  .rule-btn:hover { border-color: #6b4ef5; color: #6b4ef5; }
 
   /* ---------- progress ---------- */
   .bar-row {
@@ -79,12 +99,16 @@
     font-weight: 700;
     letter-spacing: .04em;
     text-transform: uppercase;
-    color: #6b4ef5;
-    background: #efe9ff;
     padding: 5px 11px;
     border-radius: 99px;
     margin-bottom: 16px;
   }
+  /* Tag colour encodes the conversation role, so the pattern is visible
+     before the student even reads the words. */
+  .tag.speaker  { color: #b06a00; background: #fff2dc; }
+  .tag.listener { color: #b06a00; background: #fff2dc; }
+  .tag.other    { color: #6b4ef5; background: #efe9ff; }
+  .tag.tricky   { color: #c0333a; background: #fdecec; }
 
   .sentence {
     font-size: clamp(20px, 4.6vw, 26px);
@@ -154,6 +178,19 @@
     75%      { transform: translateX(7px); }
   }
 
+  /* ---------- persistent reminder ---------- */
+  .tipbar {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: #6d7192;
+    background: #f6f5ff;
+    border-radius: 10px;
+    padding: 10px 12px;
+    line-height: 1.5;
+  }
+  .tipbar b { color: #6b4ef5; }
+
   /* ---------- feedback ---------- */
   .feedback {
     margin-top: 20px;
@@ -176,13 +213,7 @@
     color: #14603f;
   }
 
-  .feedback strong { font-weight: 700; }
-
-  .rule {
-    margin-top: 8px;
-    font-size: 14px;
-    opacity: .9;
-  }
+  .rule { margin-top: 8px; font-size: 14px; opacity: .92; }
 
   .next {
     display: none;
@@ -202,9 +233,56 @@
   .next:hover { background: #5a3ee0; }
   .next.show { display: block; }
 
+  /* ---------- intro / rule card ---------- */
+  .intro h2 {
+    font-size: 21px;
+    margin-bottom: 6px;
+  }
+  .intro .lead {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #4a4f72;
+    margin-bottom: 18px;
+  }
+
+  .swap-list { margin: 6px 0 18px; }
+
+  .swap-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border-radius: 11px;
+    margin-bottom: 8px;
+    font-size: 14.5px;
+    line-height: 1.45;
+    flex-wrap: wrap;
+  }
+  .swap-row.yes { background: #e9f8f2; }
+  .swap-row.no  { background: #fff5e6; }
+
+  .swap-row .from { font-weight: 700; }
+  .swap-row .arrow { color: #9aa0c0; }
+  .swap-row .to { font-weight: 700; }
+  .swap-row.yes .to { color: #147a50; }
+  .swap-row.no  .to { color: #8a5320; }
+  .swap-row .verdict { margin-left: auto; font-weight: 800; white-space: nowrap; }
+  .swap-row.yes .verdict { color: #147a50; }
+  .swap-row.no  .verdict { color: #8a5320; }
+  .swap-row .note { width: 100%; font-size: 13px; color: #6d7192; }
+
+  .keypoint {
+    background: #f2eeff;
+    border-left: 4px solid #6b4ef5;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
   /* ---------- results ---------- */
-  .results { text-align: center; display: none; }
-  .results.show { display: block; }
+  .results { text-align: center; }
 
   .score-big {
     font-size: 56px;
@@ -251,18 +329,74 @@
 <div class="app">
 
   <header>
-    <h1>Has or <span class="accent">Have</span>? 🔍</h1>
-    <p class="tagline">Find the subject. A subject can be a person, a thing, or a place.</p>
+    <h1>Has or <span class="accent">Have</span>? 🔄</h1>
+    <p class="tagline">Swap the subject for <b>he</b>, <b>she</b>, or <b>it</b>.</p>
+    <button class="rule-btn hide" id="ruleBtn" onclick="showIntro()">📖 Rule</button>
   </header>
 
-  <div class="bar-row" id="barRow">
+  <div class="bar-row hide" id="barRow">
     <div class="bar"><div class="bar-fill" id="barFill"></div></div>
     <span class="counter" id="counter">1 / 15</span>
   </div>
 
+  <!-- ===== INTRO / RULE CARD ===== -->
+  <div class="card intro" id="introCard">
+    <h2>One test. No memorizing. 🔄</h2>
+    <p class="lead">
+      Before you choose, try to <strong>swap the subject</strong> for
+      <strong>he</strong>, <strong>she</strong>, or <strong>it</strong>.
+    </p>
+
+    <div class="swap-list">
+      <div class="swap-row yes">
+        <span class="from">My little sister</span>
+        <span class="arrow">→</span>
+        <span class="to">she</span>
+        <span class="verdict">✅ has</span>
+      </div>
+      <div class="swap-row yes">
+        <span class="from">The library</span>
+        <span class="arrow">→</span>
+        <span class="to">it</span>
+        <span class="verdict">✅ has</span>
+        <span class="note">A place or a thing can be a subject too — it is an “it”.</span>
+      </div>
+      <div class="swap-row no">
+        <span class="from">My parents</span>
+        <span class="arrow">→</span>
+        <span class="to">they</span>
+        <span class="verdict">❌ have</span>
+      </div>
+      <div class="swap-row no">
+        <span class="from">I</span>
+        <span class="arrow">→</span>
+        <span class="to">can’t be he / she / it</span>
+        <span class="verdict">❌ have</span>
+        <span class="note">I am the person <em>speaking</em> — not the person being talked about.</span>
+      </div>
+      <div class="swap-row no">
+        <span class="from">You</span>
+        <span class="arrow">→</span>
+        <span class="to">can’t be he / she / it</span>
+        <span class="verdict">❌ have</span>
+        <span class="note">You are the person <em>listening</em> — not the person being talked about.</span>
+      </div>
+    </div>
+
+    <div class="keypoint">
+      <strong>The important part:</strong> it is <em>not</em> about one or many.
+      <strong>I</strong> and <strong>you</strong> are only one person, but they still take
+      <strong>have</strong> — because <strong>has</strong> belongs to
+      <strong>he</strong>, <strong>she</strong>, and <strong>it</strong> only.
+      Everyone and everything else takes <strong>have</strong>.
+    </div>
+
+    <button class="next show" id="introBtn" onclick="closeIntro()">Start →</button>
+  </div>
+
   <!-- ===== QUESTION CARD ===== -->
-  <div class="card" id="quizCard">
-    <span class="tag" id="tag">Person</span>
+  <div class="card hide" id="quizCard">
+    <span class="tag other" id="tag">Someone else</span>
     <p class="sentence" id="sentence"></p>
 
     <div class="choices">
@@ -270,12 +404,16 @@
       <button class="choice" id="btnHave" onclick="answer('have')">have</button>
     </div>
 
+    <p class="tipbar">
+      🔄 <b>Swap test:</b> only <b>he</b> / <b>she</b> / <b>it</b> take <b>has</b> — everyone else takes <b>have</b>.
+    </p>
+
     <div class="feedback" id="feedback"></div>
     <button class="next" id="nextBtn" onclick="nextQuestion()">Next question →</button>
   </div>
 
   <!-- ===== RESULTS CARD ===== -->
-  <div class="card results" id="resultsCard">
+  <div class="card results hide" id="resultsCard">
     <div class="score-big" id="scoreBig">0 / 15</div>
     <p class="score-label">correct on the first try</p>
     <p class="msg" id="resultMsg"></p>
@@ -290,67 +428,97 @@
 </div>
 
 <script>
-/* Each question keeps the subject at the front of the sentence so students
-   can see, every single time, exactly which words the verb has to match. */
+/* Every rule below is phrased as the same swap test, so the logic never
+   contradicts itself — including for I / you / we, which are singular but
+   still take "have" because they are not the person being talked about. */
 const QUESTIONS = [
-  { subject: "I",                     rest: "a new bike.",                    answer: "have", type: "Pronoun",
-    rule: "<strong>I</strong> always takes <strong>have</strong> — never <em>has</em>." },
+  { subject: "I", rest: "a new bike.", answer: "have", type: "The speaker", role: "speaker",
+    rule: "<strong>I</strong> can’t become <em>he</em>, <em>she</em> or <em>it</em> — I am the person <strong>speaking</strong>. Only one person, but still <strong>have</strong>." },
 
-  { subject: "My little sister",      rest: "two goldfish.",                  answer: "has",  type: "One person",
-    rule: "<strong>My little sister</strong> is one person (= she), so we use <strong>has</strong>." },
+  { subject: "My little sister", rest: "two goldfish.", answer: "has", type: "Someone else", role: "other",
+    rule: "<strong>My little sister</strong> → <strong>she</strong> ✅ → <strong>has</strong>." },
 
-  { subject: "The library",           rest: "over 3,000 books.",              answer: "has",  type: "A place",
-    rule: "A place can be a subject too! <strong>The library</strong> is one thing (= it) → <strong>has</strong>." },
+  { subject: "The library", rest: "over 3,000 books.", answer: "has", type: "Something else", role: "other",
+    rule: "<strong>The library</strong> → <strong>it</strong> ✅ → <strong>has</strong>. A place can be a subject too." },
 
-  { subject: "My parents",            rest: "a small garden.",                answer: "have", type: "Two people",
-    rule: "<strong>My parents</strong> means two people (= they) → <strong>have</strong>." },
+  { subject: "My parents", rest: "a small garden.", answer: "have", type: "Someone else", role: "other",
+    rule: "<strong>My parents</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
 
-  { subject: "You",                   rest: "a great idea.",                  answer: "have", type: "Pronoun",
-    rule: "<strong>You</strong> always takes <strong>have</strong> — one person or many." },
+  { subject: "You", rest: "a great idea.", answer: "have", type: "The listener", role: "listener",
+    rule: "<strong>You</strong> can’t become <em>he</em>, <em>she</em> or <em>it</em> — you are the person <strong>listening</strong>. One person or many, always <strong>have</strong>." },
 
-  { subject: "That old building",     rest: "ten floors.",                    answer: "has",  type: "A thing",
-    rule: "<strong>That old building</strong> is one thing (= it) → <strong>has</strong>." },
+  { subject: "That old building", rest: "ten floors.", answer: "has", type: "Something else", role: "other",
+    rule: "<strong>That old building</strong> → <strong>it</strong> ✅ → <strong>has</strong>." },
 
-  { subject: "Tom and Lily",          rest: "the same birthday.",             answer: "have", type: "Two people",
-    rule: "Two names joined by <em>and</em> = <strong>they</strong> → <strong>have</strong>." },
+  { subject: "Tom and Lily", rest: "the same birthday.", answer: "have", type: "Someone else", role: "other",
+    rule: "<strong>Tom and Lily</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
 
-  { subject: "Her phone",             rest: "a cracked screen.",              answer: "has",  type: "A thing",
-    rule: "<strong>Her phone</strong> is one thing (= it) → <strong>has</strong>. The word <em>her</em> does not change the verb." },
+  { subject: "Her phone", rest: "a cracked screen.", answer: "has", type: "Something else", role: "other",
+    rule: "<strong>Her phone</strong> → <strong>it</strong> ✅ → <strong>has</strong>. The word <em>her</em> does not change the verb." },
 
-  { subject: "We",                    rest: "English class on Monday.",       answer: "have", type: "Pronoun",
-    rule: "<strong>We</strong> takes <strong>have</strong>." },
+  { subject: "We", rest: "English class on Monday.", answer: "have", type: "The speaker", role: "speaker",
+    rule: "<strong>We</strong> = me + other people. Still the people <strong>speaking</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
 
-  { subject: "The students",          rest: "their own lockers.",             answer: "have", type: "Many people",
-    rule: "<strong>The students</strong> is plural (= they) → <strong>have</strong>. Listen for the <em>-s</em> on the noun." },
+  { subject: "The students", rest: "their own lockers.", answer: "have", type: "Someone else", role: "other",
+    rule: "<strong>The students</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
 
-  { subject: "This restaurant",       rest: "amazing noodles.",               answer: "has",  type: "A place",
-    rule: "<strong>This restaurant</strong> is one place (= it) → <strong>has</strong>." },
+  { subject: "This restaurant", rest: "amazing noodles.", answer: "has", type: "Something else", role: "other",
+    rule: "<strong>This restaurant</strong> → <strong>it</strong> ✅ → <strong>has</strong>." },
 
-  { subject: "My brother and I",      rest: "very different hobbies.",        answer: "have", type: "Two people",
-    rule: "<strong>My brother and I</strong> = <strong>we</strong> → <strong>have</strong>." },
+  { subject: "My brother and I", rest: "very different hobbies.", answer: "have", type: "The speaker", role: "speaker",
+    rule: "<strong>My brother and I</strong> → <strong>we</strong>. I am still inside the subject, so it can’t be <em>he/she/it</em> → <strong>have</strong>." },
 
-  { subject: "Everyone in my class",  rest: "a school ID card.",              answer: "has",  type: "Tricky one",
-    rule: "Careful! The subject is <strong>Everyone</strong>, not <em>my class</em>. <strong>Everyone</strong> is treated as one → <strong>has</strong>." },
+  { subject: "Everyone in my class", rest: "a school ID card.", answer: "has", type: "Tricky one", role: "tricky",
+    rule: "Careful — the subject is <strong>Everyone</strong>, not <em>my class</em>. <strong>Everyone</strong> means every single person, one at a time → <strong>he/she</strong> ✅ → <strong>has</strong>." },
 
-  { subject: "Some cities",           rest: "no subway system.",              answer: "have", type: "Many things",
-    rule: "<strong>Some cities</strong> is plural (= they) → <strong>have</strong>." },
+  { subject: "Some cities", rest: "no subway system.", answer: "have", type: "Something else", role: "other",
+    rule: "<strong>Some cities</strong> → <strong>they</strong>, not <em>he/she/it</em> → <strong>have</strong>." },
 
-  { subject: "It",                    rest: "four legs and a long tail.",     answer: "has",  type: "Pronoun",
-    rule: "<strong>He</strong>, <strong>she</strong> and <strong>it</strong> all take <strong>has</strong>." }
+  { subject: "It", rest: "four legs and a long tail.", answer: "has", type: "Something else", role: "other",
+    rule: "<strong>It</strong> is already one of the three! <em>He</em>, <em>she</em>, <em>it</em> → <strong>has</strong>." }
 ];
 
-let index      = 0;
-let firstTry   = true;
-let score      = 0;
-let missed     = [];
+let index    = 0;
+let firstTry = true;
+let score    = 0;
+let missed   = [];
+let started  = false;   // has the student left the intro screen yet?
 
 const $ = id => document.getElementById(id);
 
+/* ---------- intro / rule screen ---------- */
+function showIntro() {
+  $("introCard").classList.remove("hide");
+  $("quizCard").classList.add("hide");
+  $("resultsCard").classList.add("hide");
+  $("barRow").classList.add("hide");
+  $("ruleBtn").classList.add("hide");
+  $("introBtn").textContent = started ? "Back to the game →" : "Start →";
+}
+
+function closeIntro() {
+  $("introCard").classList.add("hide");
+  $("ruleBtn").classList.remove("hide");
+
+  // Reopening the rule mid-game must not throw away a finished game.
+  if (started && index >= QUESTIONS.length) {
+    $("resultsCard").classList.remove("hide");
+    return;
+  }
+
+  $("quizCard").classList.remove("hide");
+  $("barRow").classList.remove("hide");
+  if (!started) { started = true; render(); }
+}
+
+/* ---------- question flow ---------- */
 function render() {
   const q = QUESTIONS[index];
   firstTry = true;
 
   $("tag").textContent = q.type;
+  $("tag").className   = "tag " + q.role;
+
   $("sentence").innerHTML =
     `<span class="subject" id="subj">${q.subject}</span> ` +
     `<span class="blank" id="blank">?</span> ` +
@@ -374,18 +542,18 @@ function answer(choice) {
   const fb = $("feedback");
 
   if (choice !== q.answer) {
-    // Wrong — nudge them, but leave the question open for another try.
+    // Wrong — point them at the swap test, but leave the question open.
     $(choice === "has" ? "btnHas" : "btnHave").className = "choice wrong";
     $("subj").classList.add("lit");
 
-    fb.className   = "feedback try show";
-    fb.innerHTML   = `Not quite — try again. 👀 Look at the highlighted subject: ` +
-                     `<strong>${q.subject}</strong>. Is that <em>one</em>, or <em>more than one</em>?`;
+    fb.className = "feedback try show";
+    fb.innerHTML = `Not quite — try the swap test. 🔄<br>` +
+                   `Can <strong>${q.subject}</strong> become <strong>he</strong>, ` +
+                   `<strong>she</strong>, or <strong>it</strong>?`;
     if (firstTry) { missed.push(q); firstTry = false; }
     return;
   }
 
-  // Correct
   if (firstTry) score++;
 
   const blank = $("blank");
@@ -401,8 +569,7 @@ function answer(choice) {
   });
 
   fb.className = "feedback win show";
-  fb.innerHTML = `✅ <strong>Correct!</strong>` +
-                 `<div class="rule">Subject: <strong>${q.subject}</strong> — ${q.rule}</div>`;
+  fb.innerHTML = `✅ <strong>Correct!</strong><div class="rule">${q.rule}</div>`;
 
   $("nextBtn").className = "next show";
 }
@@ -416,15 +583,15 @@ function nextQuestion() {
 function showResults() {
   $("quizCard").classList.add("hide");
   $("barRow").classList.add("hide");
-  $("resultsCard").classList.add("show");
+  $("resultsCard").classList.remove("hide");
 
   $("scoreBig").textContent = `${score} / ${QUESTIONS.length}`;
 
   let msg;
-  if      (score === 15) msg = "Perfect! 🏆 You found every subject correctly.";
-  else if (score >= 12)  msg = "Great work! 🌟 You know your subjects well.";
-  else if (score >= 8)   msg = "Good start. 💪 Keep asking yourself: <em>one</em> or <em>more than one</em>?";
-  else                   msg = "Nice try! 🙂 Remember the trick: find the subject <em>first</em>, then choose the verb.";
+  if      (score === 15) msg = "Perfect! 🏆 The swap test is working for you.";
+  else if (score >= 12)  msg = "Great work! 🌟 You are spotting the subject quickly.";
+  else if (score >= 8)   msg = "Good start. 💪 Keep asking: can this subject become <em>he</em>, <em>she</em>, or <em>it</em>?";
+  else                   msg = "Nice try! 🙂 Read the rule again, then play once more — find the subject <em>first</em>, then swap it.";
   $("resultMsg").innerHTML = msg;
 
   if (missed.length) {
@@ -432,19 +599,21 @@ function showResults() {
     $("missedList").innerHTML = missed
       .map(q => `<li><strong>${q.subject}</strong> ${q.answer} ${q.rest}</li>`)
       .join("");
+  } else {
+    $("missedBox").classList.add("hide");
   }
 }
 
 function restart() {
   index = 0; score = 0; missed = [];
   $("missedBox").classList.add("hide");
-  $("resultsCard").classList.remove("show");
+  $("resultsCard").classList.add("hide");
   $("quizCard").classList.remove("hide");
   $("barRow").classList.remove("hide");
   render();
 }
 
-render();
+showIntro();
 </script>
 </body>
 </html>
