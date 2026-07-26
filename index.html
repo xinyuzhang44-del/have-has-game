@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Has or Have? — Subject Detective</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(160deg, #eef4ff 0%, #f7f0ff 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px 16px 40px;
+    color: #1f2340;
+  }
+
+  .app { width: 100%; max-width: 680px; }
+
+  /* ---------- header ---------- */
+  header { text-align: center; margin-bottom: 18px; }
+
+  h1 {
+    font-size: clamp(22px, 5vw, 30px);
+    letter-spacing: -0.02em;
+  }
+  h1 .accent { color: #6b4ef5; }
+
+  .tagline {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #5d6183;
+  }
+
+  /* ---------- progress ---------- */
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 14px;
+  }
+
+  .bar {
+    flex: 1;
+    height: 9px;
+    background: #dfe3f5;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #6b4ef5, #9b6bff);
+    border-radius: 99px;
+    transition: width .35s ease;
+  }
+
+  .counter {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5d6183;
+    white-space: nowrap;
+  }
+
+  /* ---------- card ---------- */
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 26px 22px;
+    box-shadow: 0 10px 34px rgba(60, 50, 130, .12);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #6b4ef5;
+    background: #efe9ff;
+    padding: 5px 11px;
+    border-radius: 99px;
+    margin-bottom: 16px;
+  }
+
+  .sentence {
+    font-size: clamp(20px, 4.6vw, 26px);
+    line-height: 1.65;
+    font-weight: 500;
+  }
+
+  .subject {
+    border-bottom: 3px solid #ffd66b;
+    padding-bottom: 1px;
+    transition: background .3s;
+  }
+  .subject.lit { background: #fff6d9; border-radius: 4px; }
+
+  .blank {
+    display: inline-block;
+    min-width: 92px;
+    text-align: center;
+    border-bottom: 3px solid #b9bede;
+    color: #b9bede;
+    font-weight: 700;
+  }
+  .blank.filled {
+    border-bottom-color: #22a06b;
+    color: #22a06b;
+  }
+
+  /* ---------- choices ---------- */
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 26px;
+  }
+
+  .choice {
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 700;
+    padding: 20px 10px;
+    border: 2.5px solid #dfe3f5;
+    background: #fff;
+    color: #1f2340;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: transform .12s, border-color .18s, background .18s;
+  }
+  .choice:hover:not(:disabled) { border-color: #6b4ef5; transform: translateY(-2px); }
+  .choice:disabled { cursor: default; }
+
+  .choice.correct {
+    background: #e6f7f0;
+    border-color: #22a06b;
+    color: #147a50;
+  }
+  .choice.wrong {
+    background: #fdecec;
+    border-color: #e5484d;
+    color: #c0333a;
+    animation: shake .4s;
+  }
+  .choice.dimmed { opacity: .45; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-7px); }
+    75%      { transform: translateX(7px); }
+  }
+
+  /* ---------- feedback ---------- */
+  .feedback {
+    margin-top: 20px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    font-size: 15px;
+    line-height: 1.6;
+    display: none;
+  }
+  .feedback.show { display: block; }
+
+  .feedback.try {
+    background: #fff5e6;
+    border-left: 4px solid #f2994a;
+    color: #8a5320;
+  }
+  .feedback.win {
+    background: #e9f8f2;
+    border-left: 4px solid #22a06b;
+    color: #14603f;
+  }
+
+  .feedback strong { font-weight: 700; }
+
+  .rule {
+    margin-top: 8px;
+    font-size: 14px;
+    opacity: .9;
+  }
+
+  .next {
+    display: none;
+    width: 100%;
+    margin-top: 18px;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 15px;
+    border: none;
+    border-radius: 14px;
+    background: #6b4ef5;
+    color: #fff;
+    cursor: pointer;
+    transition: background .18s;
+  }
+  .next:hover { background: #5a3ee0; }
+  .next.show { display: block; }
+
+  /* ---------- results ---------- */
+  .results { text-align: center; display: none; }
+  .results.show { display: block; }
+
+  .score-big {
+    font-size: 56px;
+    font-weight: 800;
+    color: #6b4ef5;
+    line-height: 1.1;
+    margin: 10px 0 4px;
+  }
+
+  .score-label { font-size: 15px; color: #5d6183; margin-bottom: 20px; }
+
+  .msg {
+    font-size: 17px;
+    line-height: 1.6;
+    background: #f5f3ff;
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 22px;
+  }
+
+  .missed {
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.8;
+    background: #fff8f0;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+  }
+  .missed h3 { font-size: 14px; margin-bottom: 8px; color: #8a5320; }
+  .missed li { margin-left: 18px; color: #6b4a25; }
+
+  .hide { display: none !important; }
+
+  footer {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 12.5px;
+    color: #8b8fae;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>Has or <span class="accent">Have</span>? 🔍</h1>
+    <p class="tagline">Find the subject. A subject can be a person, a thing, or a place.</p>
+  </header>
+
+  <div class="bar-row" id="barRow">
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    <span class="counter" id="counter">1 / 15</span>
+  </div>
+
+  <!-- ===== QUESTION CARD ===== -->
+  <div class="card" id="quizCard">
+    <span class="tag" id="tag">Person</span>
+    <p class="sentence" id="sentence"></p>
+
+    <div class="choices">
+      <button class="choice" id="btnHas"  onclick="answer('has')">has</button>
+      <button class="choice" id="btnHave" onclick="answer('have')">have</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <button class="next" id="nextBtn" onclick="nextQuestion()">Next question →</button>
+  </div>
+
+  <!-- ===== RESULTS CARD ===== -->
+  <div class="card results" id="resultsCard">
+    <div class="score-big" id="scoreBig">0 / 15</div>
+    <p class="score-label">correct on the first try</p>
+    <p class="msg" id="resultMsg"></p>
+    <div class="missed hide" id="missedBox">
+      <h3>Worth reviewing:</h3>
+      <ul id="missedList"></ul>
+    </div>
+    <button class="next show" onclick="restart()">Play again ↻</button>
+  </div>
+
+  <footer>15 questions · you can try again until you get it right</footer>
+</div>
+
+<script>
+/* Each question keeps the subject at the front of the sentence so students
+   can see, every single time, exactly which words the verb has to match. */
+const QUESTIONS = [
+  { subject: "I",                     rest: "a new bike.",                    answer: "have", type: "Pronoun",
+    rule: "<strong>I</strong> always takes <strong>have</strong> — never <em>has</em>." },
+
+  { subject: "My little sister",      rest: "two goldfish.",                  answer: "has",  type: "One person",
+    rule: "<strong>My little sister</strong> is one person (= she), so we use <strong>has</strong>." },
+
+  { subject: "The library",           rest: "over 3,000 books.",              answer: "has",  type: "A place",
+    rule: "A place can be a subject too! <strong>The library</strong> is one thing (= it) → <strong>has</strong>." },
+
+  { subject: "My parents",            rest: "a small garden.",                answer: "have", type: "Two people",
+    rule: "<strong>My parents</strong> means two people (= they) → <strong>have</strong>." },
+
+  { subject: "You",                   rest: "a great idea.",                  answer: "have", type: "Pronoun",
+    rule: "<strong>You</strong> always takes <strong>have</strong> — one person or many." },
+
+  { subject: "That old building",     rest: "ten floors.",                    answer: "has",  type: "A thing",
+    rule: "<strong>That old building</strong> is one thing (= it) → <strong>has</strong>." },
+
+  { subject: "Tom and Lily",          rest: "the same birthday.",             answer: "have", type: "Two people",
+    rule: "Two names joined by <em>and</em> = <strong>they</strong> → <strong>have</strong>." },
+
+  { subject: "Her phone",             rest: "a cracked screen.",              answer: "has",  type: "A thing",
+    rule: "<strong>Her phone</strong> is one thing (= it) → <strong>has</strong>. The word <em>her</em> does not change the verb." },
+
+  { subject: "We",                    rest: "English class on Monday.",       answer: "have", type: "Pronoun",
+    rule: "<strong>We</strong> takes <strong>have</strong>." },
+
+  { subject: "The students",          rest: "their own lockers.",             answer: "have", type: "Many people",
+    rule: "<strong>The students</strong> is plural (= they) → <strong>have</strong>. Listen for the <em>-s</em> on the noun." },
+
+  { subject: "This restaurant",       rest: "amazing noodles.",               answer: "has",  type: "A place",
+    rule: "<strong>This restaurant</strong> is one place (= it) → <strong>has</strong>." },
+
+  { subject: "My brother and I",      rest: "very different hobbies.",        answer: "have", type: "Two people",
+    rule: "<strong>My brother and I</strong> = <strong>we</strong> → <strong>have</strong>." },
+
+  { subject: "Everyone in my class",  rest: "a school ID card.",              answer: "has",  type: "Tricky one",
+    rule: "Careful! The subject is <strong>Everyone</strong>, not <em>my class</em>. <strong>Everyone</strong> is treated as one → <strong>has</strong>." },
+
+  { subject: "Some cities",           rest: "no subway system.",              answer: "have", type: "Many things",
+    rule: "<strong>Some cities</strong> is plural (= they) → <strong>have</strong>." },
+
+  { subject: "It",                    rest: "four legs and a long tail.",     answer: "has",  type: "Pronoun",
+    rule: "<strong>He</strong>, <strong>she</strong> and <strong>it</strong> all take <strong>has</strong>." }
+];
+
+let index      = 0;
+let firstTry   = true;
+let score      = 0;
+let missed     = [];
+
+const $ = id => document.getElementById(id);
+
+function render() {
+  const q = QUESTIONS[index];
+  firstTry = true;
+
+  $("tag").textContent = q.type;
+  $("sentence").innerHTML =
+    `<span class="subject" id="subj">${q.subject}</span> ` +
+    `<span class="blank" id="blank">?</span> ` +
+    q.rest;
+
+  ["btnHas", "btnHave"].forEach(id => {
+    const b = $(id);
+    b.disabled = false;
+    b.className = "choice";
+  });
+
+  $("feedback").className = "feedback";
+  $("nextBtn").className  = "next";
+
+  $("counter").textContent = `${index + 1} / ${QUESTIONS.length}`;
+  $("barFill").style.width = `${(index / QUESTIONS.length) * 100}%`;
+}
+
+function answer(choice) {
+  const q  = QUESTIONS[index];
+  const fb = $("feedback");
+
+  if (choice !== q.answer) {
+    // Wrong — nudge them, but leave the question open for another try.
+    $(choice === "has" ? "btnHas" : "btnHave").className = "choice wrong";
+    $("subj").classList.add("lit");
+
+    fb.className   = "feedback try show";
+    fb.innerHTML   = `Not quite — try again. 👀 Look at the highlighted subject: ` +
+                     `<strong>${q.subject}</strong>. Is that <em>one</em>, or <em>more than one</em>?`;
+    if (firstTry) { missed.push(q); firstTry = false; }
+    return;
+  }
+
+  // Correct
+  if (firstTry) score++;
+
+  const blank = $("blank");
+  blank.textContent = q.answer;
+  blank.className   = "blank filled";
+  $("subj").classList.add("lit");
+
+  ["btnHas", "btnHave"].forEach(id => {
+    const b = $(id);
+    b.disabled = true;
+    if (b.textContent === q.answer) b.className = "choice correct";
+    else if (!b.className.includes("wrong")) b.className = "choice dimmed";
+  });
+
+  fb.className = "feedback win show";
+  fb.innerHTML = `✅ <strong>Correct!</strong>` +
+                 `<div class="rule">Subject: <strong>${q.subject}</strong> — ${q.rule}</div>`;
+
+  $("nextBtn").className = "next show";
+}
+
+function nextQuestion() {
+  index++;
+  if (index >= QUESTIONS.length) return showResults();
+  render();
+}
+
+function showResults() {
+  $("quizCard").classList.add("hide");
+  $("barRow").classList.add("hide");
+  $("resultsCard").classList.add("show");
+
+  $("scoreBig").textContent = `${score} / ${QUESTIONS.length}`;
+
+  let msg;
+  if      (score === 15) msg = "Perfect! 🏆 You found every subject correctly.";
+  else if (score >= 12)  msg = "Great work! 🌟 You know your subjects well.";
+  else if (score >= 8)   msg = "Good start. 💪 Keep asking yourself: <em>one</em> or <em>more than one</em>?";
+  else                   msg = "Nice try! 🙂 Remember the trick: find the subject <em>first</em>, then choose the verb.";
+  $("resultMsg").innerHTML = msg;
+
+  if (missed.length) {
+    $("missedBox").classList.remove("hide");
+    $("missedList").innerHTML = missed
+      .map(q => `<li><strong>${q.subject}</strong> ${q.answer} ${q.rest}</li>`)
+      .join("");
+  }
+}
+
+function restart() {
+  index = 0; score = 0; missed = [];
+  $("missedBox").classList.add("hide");
+  $("resultsCard").classList.remove("show");
+  $("quizCard").classList.remove("hide");
+  $("barRow").classList.remove("hide");
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
